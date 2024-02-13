@@ -1,4 +1,3 @@
-
 const express = require('express');
 const helmet = require('helmet');
 const app = express();
@@ -15,12 +14,19 @@ db.connect();
 
 // Set up routes
 const productRoutes = require('./routes/productRoutes');
-//const userRoutes = require('./routes/userRoutes'); 
+const userRoutes = require('./routes/userRoutes');
+const adminRoutes = require('./routes/adminRoutes'); // Import admin routes
 
 app.use('/products', productRoutes);
-//app.use('/users', userRoutes);
+app.use('/users', userRoutes);
+app.use('/admin', adminRoutes); // Set up admin routes
 
 const PORT = process.env.PORT || 3000;
+const logWithLink = (port) => {
+  const link = `http://localhost:${port}`;
+  return `\u001b[1mServer is running on port \u001b[36m${port}\u001b[39m - \u001b[4m\u001b[32m${link}\u001b[0m`;
+};
+
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(logWithLink(PORT));
 });
