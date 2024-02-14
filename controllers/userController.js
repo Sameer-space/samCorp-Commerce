@@ -2,6 +2,27 @@ const User = require('../models/userModel');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
+function verifyUserToken(userToken){
+  if (!userToken) {
+    return res.status(401).json({ error: 'Authorization token is missing' });
+  }
+
+  // Extract the token from the authorization header
+  const tokenParts = userToken.split(' ');
+  if (tokenParts.length !== 2 || tokenParts[0] !== 'Bearer') {
+    return res.status(401).json({ error: 'Invalid authorization header format' });
+  }
+  const token = tokenParts[1];
+
+  // Verify the token
+  const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+  if (!decodedToken) {
+    return res.status(403).json({ error: 'Unauthorized access' });
+  }
+  return decodedToken;
+
+}
+
 const UserController = {
   async register(req, res) {
     try {
@@ -103,23 +124,7 @@ const UserController = {
     try {
       // Check if the request is coming from an authenticated user
       const userToken = req.headers.authorization;
-      if (!userToken) {
-        return res.status(401).json({ error: 'Authorization token is missing' });
-      }
-    
-      // Extract the token from the authorization header
-      const tokenParts = userToken.split(' ');
-      if (tokenParts.length !== 2 || tokenParts[0] !== 'Bearer') {
-        return res.status(401).json({ error: 'Invalid authorization header format' });
-      }
-      const token = tokenParts[1];
-    
-      // Verify the token
-      const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-      if (!decodedToken) {
-        return res.status(403).json({ error: 'Unauthorized access' });
-      }
-
+      const decodedToken = verifyUserToken(userToken);
         // Find the user by userId from the decoded token
         const user = await User.findById(decodedToken.userId);
         if (!user) {
@@ -127,15 +132,16 @@ const UserController = {
         }
 
         // Return the user information
-        return res.json({
-            id: user._id,
-            username: user.username,
-            name: user.name,
-            email: user.email,
-            addressLine1: user.addressLine1,
-            addressLine2: user.addressLine2,
-            phone: user.phone
-        });
+        const meData = {
+          id: user._id,
+          username: user.username,
+          name: user.name,
+          email: user.email,
+          addressLine1: user.addressLine1,
+          addressLine2: user.addressLine2,
+          phone: user.phone
+      }; 
+        return res.json({me : meData});
     } catch (error) {
         console.error(error);
         if (error.name === 'JsonWebTokenError') {

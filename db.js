@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 async function connect() {
   try {
-    const atlasUri = "mongodb+srv://sameerspace6t:sameerspace6t@samcorp.ttqu1go.mongodb.net/samcorpdb?retryWrites=true&w=majority"; // Replace with your MongoDB Atlas connection string
+    const atlasUri = process.env.MONGODB_URI; // Replace with your MongoDB Atlas connection string
     
     const clientOptions = { serverApi: { version: '1', strict: true, deprecationErrors: true } };
 

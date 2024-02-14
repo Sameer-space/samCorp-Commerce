@@ -4,6 +4,27 @@ const User = require('../models/userModel');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
+
+function verifyAdminToken(adminToken){
+  if (!adminToken) {
+    return res.status(401).json({ error: 'Authorization token is missing' });
+  }
+
+  // Extract the token from the authorization header
+  const tokenParts = adminToken.split(' ');
+  if (tokenParts.length !== 2 || tokenParts[0] !== 'Bearer') {
+    return res.status(401).json({ error: 'Invalid authorization header format' });
+  }
+  const token = tokenParts[1];
+
+  // Verify the token
+  const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+  if (!decodedToken || decodedToken.role !== 'admin') {
+    return res.status(403).json({ error: 'Unauthorized access' });
+  }
+
+}
+
 const AdminController = {
     async register(req, res) {
       try {
@@ -81,36 +102,22 @@ const AdminController = {
       try {
         // Check if the request is coming from an authenticated admin
         const adminToken = req.headers.authorization;
-        if (!adminToken) {
-          return res.status(401).json({ error: 'Authorization token is missing' });
-        }
-
-        // Extract the token from the authorization header
-        const tokenParts = adminToken.split(' ');
-        if (tokenParts.length !== 2 || tokenParts[0] !== 'Bearer') {
-          return res.status(401).json({ error: 'Invalid authorization header format' });
-        }
-        const token = tokenParts[1];
-
-        // Verify the token
-        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-        if (!decodedToken || decodedToken.role !== 'admin') {
-          return res.status(403).json({ error: 'Unauthorized access' });
-        }
+        verifyAdminToken(adminToken);
 
         // Fetch all users from the database
         const users = await User.find();
 
         // Return the list of users formatted
-        res.json(users.map((user) => ({
-            id: user._id,
-            username: user.username,
-            name: user.name,
-            email: user.email,
-            addressLine1: user.addressLine1,
-            addressLine2: user.addressLine2,
-            phone: user.phone
-          })));
+        const formatedUsers = users.map((user) => ({
+          id: user._id,
+          username: user.username,
+          name: user.name,
+          email: user.email,
+          addressLine1: user.addressLine1,
+          addressLine2: user.addressLine2,
+          phone: user.phone
+        }));
+        res.json({users : formatedUsers});
           
       } catch (error) {
         console.error(error);
@@ -128,22 +135,8 @@ const AdminController = {
     try {
         // Check if the request is coming from an authenticated admin
         const adminToken = req.headers.authorization;
-        if (!adminToken) {
-          return res.status(401).json({ error: 'Authorization token is missing' });
-        }
-
-        // Extract the token from the authorization header
-        const tokenParts = adminToken.split(' ');
-        if (tokenParts.length !== 2 || tokenParts[0] !== 'Bearer') {
-          return res.status(401).json({ error: 'Invalid authorization header format' });
-        }
-        const token = tokenParts[1];
-
-        // Verify the token
-        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-        if (!decodedToken || decodedToken.role !== 'admin') {
-          return res.status(403).json({ error: 'Unauthorized access' });
-        }
+        
+        verifyAdminToken(adminToken);
 
       // Extract user ID from request params
       const { userId } = req.params;
@@ -157,7 +150,8 @@ const AdminController = {
       }
 
       // Return the user data
-      res.json({
+
+      const  userData = {
         id: user._id,
         username: user.username,
         name: user.name,
@@ -165,7 +159,9 @@ const AdminController = {
         addressLine1: user.addressLine1,
         addressLine2: user.addressLine2,
         phone: user.phone
-      });
+      };
+
+      res.json({user : userData});
     } catch (error) {
       console.error(error);
       if (error.name === 'JsonWebTokenError') {
