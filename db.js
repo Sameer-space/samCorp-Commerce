@@ -7,11 +7,7 @@ async function connect() {
     const clientOptions = { serverApi: { version: '1', strict: true, deprecationErrors: true } };
 
     // Create a Mongoose client with a MongoClientOptions object to set the Stable API version
-    await mongoose.connect(atlasUri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      ...clientOptions
-    });
+    await mongoose.connect(atlasUri, clientOptions);
 
     console.log('Connected to MongoDB Atlas');
 
