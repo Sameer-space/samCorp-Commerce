@@ -5,11 +5,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 
-function verifyAdminToken(adminToken){
-  if (!adminToken) {
-    return res.status(401).json({ error: 'Authorization token is missing' });
-  }
-
+function verifyAdminToken(adminToken,res){
   // Extract the token from the authorization header
   const tokenParts = adminToken.split(' ');
   if (tokenParts.length !== 2 || tokenParts[0] !== 'Bearer') {
@@ -102,7 +98,10 @@ const AdminController = {
       try {
         // Check if the request is coming from an authenticated admin
         const adminToken = req.headers.authorization;
-        verifyAdminToken(adminToken);
+        if (!adminToken) {
+          return res.status(401).json({ error: 'Authorization token is missing' });
+        }
+        verifyAdminToken(adminToken,res);
 
         // Fetch all users from the database
         const users = await User.find();
@@ -135,8 +134,10 @@ const AdminController = {
     try {
         // Check if the request is coming from an authenticated admin
         const adminToken = req.headers.authorization;
-        
-        verifyAdminToken(adminToken);
+        if (!adminToken) {
+          return res.status(401).json({ error: 'Authorization token is missing' });
+        }
+        verifyAdminToken(adminToken,res);
 
       // Extract user ID from request params
       const { userId } = req.params;

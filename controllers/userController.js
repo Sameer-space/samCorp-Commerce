@@ -2,26 +2,27 @@ const User = require('../models/userModel');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-function verifyUserToken(userToken){
-  if (!userToken) {
-    return res.status(401).json({ error: 'Authorization token is missing' });
-  }
+function verifyUserToken(userToken, res) {
+  try {
+    // Extract the token from the authorization header
+    const tokenParts = userToken.split(' ');
+    if (tokenParts.length !== 2 || tokenParts[0] !== 'Bearer') {
+      return res.status(401).json({ error: 'Invalid authorization header format' });
+    }
+    const token = tokenParts[1];
 
-  // Extract the token from the authorization header
-  const tokenParts = userToken.split(' ');
-  if (tokenParts.length !== 2 || tokenParts[0] !== 'Bearer') {
-    return res.status(401).json({ error: 'Invalid authorization header format' });
+    // Verify the token
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decodedToken) {
+      return res.status(403).json({ error: 'Unauthorized access' });
+    }
+    return decodedToken;
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
-  const token = tokenParts[1];
-
-  // Verify the token
-  const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-  if (!decodedToken) {
-    return res.status(403).json({ error: 'Unauthorized access' });
-  }
-  return decodedToken;
-
 }
+
 
 const UserController = {
   async register(req, res) {
@@ -124,7 +125,10 @@ const UserController = {
     try {
       // Check if the request is coming from an authenticated user
       const userToken = req.headers.authorization;
-      const decodedToken = verifyUserToken(userToken);
+      if (!userToken) {
+        return res.status(401).json({ error: 'Authorization token is missing' });
+      }
+      const decodedToken = verifyUserToken(userToken,res);
         // Find the user by userId from the decoded token
         const user = await User.findById(decodedToken.userId);
         if (!user) {

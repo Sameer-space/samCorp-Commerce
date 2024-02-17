@@ -17,11 +17,13 @@ const userRoutes = require('./routes/userRoutes');
 const adminRoutes = require('./routes/adminRoutes'); // Import admin routes
 const categoryRoutes = require('./routes/categoryRoutes');
 const productRoutes = require('./routes/productRoutes');
+const cartRoutes = require('./routes/cartRoutes');
 
 app.use('/users', userRoutes);
 app.use('/admin', adminRoutes); // Set up admin routes
 app.use('/categories', categoryRoutes);
 app.use('/products', productRoutes);
+app.use('/cart', cartRoutes);
 
 const PORT = process.env.PORT || 3000;
 const logWithLink = (port) => {
