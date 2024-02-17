@@ -174,40 +174,77 @@ const cartController = {
 
   
 
-  updateCartItem: async(req, res) => {  
+  updateCartItem: async (req, res) => {
     try {
-        const userToken = req.headers.authorization;
-        if (!userToken) {
-          return res.status(401).json({ error: 'Authorization token is missing' });
-        }    
-        const decodedToken = verifyUserToken(userToken,res);
-        // Find the user by userId from the decoded token
-        const user = findUser(decodedToken,res);
-        const { itemId, quantity } = req.body;
-
+      const userToken = req.headers.authorization;
+      if (!userToken) {
+        return res.status(401).json({ error: 'Authorization token is missing' });
+      }
+      const decodedToken = verifyUserToken(userToken, res);
+      // Find the user by userId from the decoded token
+      const user = await findUser(decodedToken, res);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+  
+      const { itemId, quantity } = req.body;
+  
       // Validate input data
       if (!quantity || quantity < 1) {
         return res.status(400).json({ error: 'Invalid quantity' });
       }
-
-      // Update item quantity in the cart
-      const updatedCart = await Cart.findOneAndUpdate(
-        { 'items._id': itemId },
-        { $set: { 'items.$.quantity': quantity } },
-        { new: true }
-      );
-
-      if (!updatedCart) {
+  
+      // Find the item in the cart
+      const cart = await Cart.findOne({ 'items._id': itemId }).populate('items.productId');
+      if (!cart) {
         return res.status(404).json({ error: 'Item not found in cart' });
       }
-
+  
+      // Find the item in the cart's items array
+      const item = cart.items.find((item) => item._id.equals(itemId));
+      if (!item) {
+        return res.status(404).json({ error: 'Item not found in cart' });
+      }
+  
+      // Calculate new total price based on the updated quantity
+      const product = await Product.findById(item.productId);
+      const variant = product.variants.find((v) => v._id.equals(item.variantId));
+      const newTotalPrice = variant.price * quantity;
+  
+      // Update item quantity and price in the cart
+      item.quantity = quantity;
+      item.price = newTotalPrice;
+  
+      // Save the updated cart
+      await cart.save();
+  
+      // Format the cart response
+      const formattedCart = {
+        cartId: cart._id,
+        items: cart.items.map((item) => {
+          //const variant = item.productId.variants.find((v) => v._id.equals(item.variantId));
+          return {
+            itemId: item._id,
+            productId: item.productId._id,
+            variantId: item.variantId,
+            quantity: item.quantity,
+            total: item.price
+          };
+        }),
+        createdAt: cart.createdAt,
+        updatedAt: cart.updatedAt
+      };
+      
+  
       // Return updated cart
-      res.json({ message: 'Cart item quantity updated successfully', cart: updatedCart });
+      res.json({ message: 'Cart item quantity updated successfully', cart: formattedCart });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Internal server error' });
     }
   },
+  
+  
 
   removeFromCart: async (req, res) => {
     try {
