@@ -254,7 +254,7 @@ const cartController = {
         }    
         const decodedToken = verifyUserToken(userToken,res);
         // Find the user by userId from the decoded token
-        const user = findUser(decodedToken,res);  
+        const user = await findUser(decodedToken,res);  
         const itemId = req.params.itemId;
 
       // Find user's cart and remove item
@@ -268,12 +268,27 @@ const cartController = {
         return res.status(404).json({ error: 'Cart not found' });
       }
 
-      res.json(cart);
+      // Format the response
+      const formattedCart = {
+        id: cart._id,
+        items: cart.items.map(item => ({
+          itemId: item._id,
+          productId: item.productId,
+          variantId: item.variantId,
+          quantity: item.quantity,
+          total: item.price
+        })),
+        createdAt: cart.createdAt,
+        updatedAt: cart.updatedAt
+      };
+
+      res.json({ cart: formattedCart });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Internal server error' });
     }
   },
+
 
   clearCart: async (req, res) => {
     try {
@@ -283,24 +298,34 @@ const cartController = {
         }    
         const decodedToken = verifyUserToken(userToken,res);
         // Find the user by userId from the decoded token
-        const user = findUser(decodedToken,res); 
-      // Find user's cart and remove all items
-      const cart = await Cart.findOneAndUpdate(
-        { user: user._id },
-        { $set: { items: [] } },
-        { new: true }
-      );
+        const user = await findUser(decodedToken,res); 
+      
+        // Find user's cart and remove all items
+        const cart = await Cart.findOneAndUpdate(
+          { user: user._id },
+          { $set: { items: [] } },
+          { new: true }
+        );
 
-      if (!cart) {
-        return res.status(404).json({ error: 'Cart not found' });
-      }
+        if (!cart) {
+          return res.status(404).json({ error: 'Cart not found' });
+        }
 
-      res.json({ message: 'Cart cleared successfully', cart });
+        // Format the response
+        const formattedCart = {
+          cartId: cart._id,
+          items: [],
+          createdAt: cart.createdAt,
+          updatedAt: cart.updatedAt
+        };
+
+        res.json({ message: 'Cart cleared successfully', cart: formattedCart });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Internal server error' });
     }
   }
+
 };
 
 module.exports = cartController;

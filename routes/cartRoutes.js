@@ -9,7 +9,7 @@ router.post('/', cartController.addToCart);
 router.get('/', cartController.getCart);
 
 // Remove item from cart
-router.delete('/:itemId', cartController.removeFromCart);
+router.delete('/item/:itemId', cartController.removeFromCart);
 
 // Clear user's cart
 router.delete('/clear', cartController.clearCart);
