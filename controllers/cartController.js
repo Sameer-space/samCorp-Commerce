@@ -39,88 +39,140 @@ const cartController = {
   addToCart: async (req, res) => {
     try {
       // Check if the request is coming from an authenticated user
-        const userToken = req.headers.authorization;
-        if (!userToken) {
-          return res.status(401).json({ error: 'Authorization token is missing' });
-        }    
-        const decodedToken = verifyUserToken(userToken,res);
-        // Find the user by userId from the decoded token
-        const user = findUser(decodedToken,res);
+      const userToken = req.headers.authorization;
+      if (!userToken) {
+        return res.status(401).json({ error: 'Authorization token is missing' });
+      }    
+  
+      const decodedToken = verifyUserToken(userToken,res);
+      if (!decodedToken) {
+        return res.status(403).json({ error: 'Unauthorized access' });
+      }
+      
+      // Find the user by userId from the decoded token
+      const user = await User.findById(decodedToken.userId);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+  
       const { productId, variantId, quantity } = req.body;
-        
+      
       // Validate input data
       if (!productId || !variantId || !quantity || quantity < 1) {
         return res.status(400).json({ error: 'Invalid input data' });
       }
-
+  
       // Fetch product details
       const product = await Product.findById(productId);
       if (!product) {
         return res.status(404).json({ error: 'Product not found' });
       }
-
+  
       // Find the variant in the product variants array
       const variant = product.variants.find(v => v._id.equals(variantId));
       if (!variant) {
         return res.status(404).json({ error: 'Product variant not found' });
       }
-
+  
       // Calculate total price
       const totalPrice = variant.price * quantity;
-
-      // Create or update user's cart
+  
+      // Find or create user's cart
       let cart = await Cart.findOne({ user: user._id });
       if (!cart) {
         cart = new Cart({ user: user._id, items: [] });
       }
-
+  
       // Check if the item already exists in the cart
-      const existingItem = cart.items.find(item => item.productId.equals(productId) && item.variantId.equals(variantId));
-      if (existingItem) {
-        existingItem.quantity += quantity;
-        existingItem.price += totalPrice;
+      const existingItemIndex = cart.items.findIndex(item => item.productId.equals(productId) && item.variantId.equals(variantId));
+      if (existingItemIndex !== -1) {
+        // If the item already exists, update its quantity and price
+        cart.items[existingItemIndex].quantity += quantity;
+        cart.items[existingItemIndex].price += totalPrice;
       } else {
+        // If the item doesn't exist, add it to the cart
         cart.items.push({ productId, variantId, quantity, price: totalPrice });
       }
-
+  
       // Save the cart
       await cart.save();
+  
+      // Format the response
+      const formattedCart = {
+        cartId: cart._id,
+        items: cart.items.map(item => ({
+          itemId: item._id,
+          productId: item.productId,
+          variantId: item.variantId,
+          quantity: item.quantity,
+          total: item.price,
+          createdAt: item.createdAt
+        }))
+      };
+  
+      // Return success response with formatted cart
+      res.status(200).json({ message: 'Product added to cart successfully', cart: formattedCart });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  },
+  
+  
 
-      // Return success response
-      res.status(200).json({ message: 'Product added to cart successfully', cart });
+  getCart: async (req, res) => {
+    try {
+      const userToken = req.headers.authorization;
+      if (!userToken) {
+        return res.status(401).json({ error: 'Authorization token is missing' });
+      }    
+      const decodedToken = verifyUserToken(userToken, res);
+      
+      // Find the user by userId from the decoded token
+      const user = await findUser(decodedToken, res);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+  
+      // Find the user's cart and populate items with product details
+      const cart = await Cart.findOne({ user: user._id }).populate('items.productId');
+      
+      if (!cart) {
+        return res.status(404).json({ error: 'Cart not found' });
+      }
+  
+      // Calculate grand total
+      const grandTotal = cart.items.reduce((total, item) => total + item.price, 0);
+
+      // Format the cart response
+      const formattedCart = {
+        id: cart._id,
+        items: cart.items.map(item => {
+          const product = item.productId;
+          const variant = product.variants.find(v => v._id.equals(item.variantId));
+          return {
+            itemId: item._id,
+            productId: product._id,
+            productName: product.name,
+            variantId: variant._id,
+            variantName: variant.name,
+            unitPrice: variant.price,
+            quantity: item.quantity,
+            total: item.price,
+            images: [product.images, variant.images].flat()
+          };
+        }),
+        grandTotal: grandTotal
+      };
+
+      res.json({ cart: formattedCart });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Internal server error' });
     }
   },
 
-  getCart: async (req, res) => {
-    try {
-        const userToken = req.headers.authorization;
-        if (!userToken) {
-          return res.status(401).json({ error: 'Authorization token is missing' });
-        }    
-        const decodedToken = verifyUserToken(userToken,res);
-        
-        // Find the user by userId from the decoded token
-        const user = await findUser(decodedToken,res);
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-
-        // Find the user's cart and populate items with product details
-        const cart = await Cart.findOne({ user: user._id }).populate('items.productId');
-        
-        if (!cart) {
-            return res.status(404).json({ error: 'Cart not found' });
-        }
-
-        res.json(cart);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
-},
+  
 
   updateCartItem: async(req, res) => {  
     try {
