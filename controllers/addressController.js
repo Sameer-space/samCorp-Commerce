@@ -46,13 +46,22 @@ const AddressController = {
       if (!decodedToken) {
         return res.status(403).json({ error: 'Unauthorized access' });
       } 
-
+  
       // Find the user by userId from the decoded token
       const user = await User.findById(decodedToken.userId);
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
 
+      // If the new address is set as default, find any existing default address
+      if (isDefault) {
+        const existingDefaultAddress = user.addresses.find(address => address.isDefault === true);
+        if (existingDefaultAddress) {
+          // Set the existing default address to false
+          existingDefaultAddress.isDefault = false;
+        }
+      }
+  
       const newAddress = {
         streetAddress,
         city,
@@ -62,16 +71,29 @@ const AddressController = {
         phoneNumber,
         isDefault
       };
-
+  
       user.addresses.push(newAddress);
       await user.save();
-
-      res.status(201).json({ message: 'Address created successfully', address: newAddress });
+  
+      // Format the new address for response
+      const formattedAddress = {
+        id: newAddress._id,
+        streetAddress: newAddress.streetAddress,
+        city: newAddress.city,
+        state: newAddress.state,
+        postalCode: newAddress.postalCode,
+        country: newAddress.country,
+        phoneNumber: newAddress.phoneNumber,
+        isDefault: newAddress.isDefault
+      };
+  
+      res.status(201).json({ message: 'Address created successfully', address: formattedAddress });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Internal server error' });
     }
   },
+  
 
   // Get all addresses of the logged-in user
   async getAllAddresses(req, res) {
@@ -94,7 +116,7 @@ const AddressController = {
   
       // Format the addresses response
       const formattedAddresses = user.addresses.map(address => ({
-        addressId: address._id,
+        id: address._id,
         streetAddress: address.streetAddress,
         city: address.city,
         state: address.state,
