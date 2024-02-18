@@ -53,7 +53,7 @@ const AdminController = {
         });
         await newAdmin.save();
   
-        res.json({ message: 'Hooray! You\'ve successfully joined the admin team. Welcome aboard! 🎉' });
+        res.status(201).json({ message: 'Hooray! You\'ve successfully joined the admin team. Welcome aboard! 🎉' });
       } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Oops! Something went wrong on our end. Our hamsters are on it!' });

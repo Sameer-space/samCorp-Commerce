@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Address = require('./addressModel'); // Import the Address model/schema
 
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
@@ -6,8 +7,7 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   phone: { type: String, required: true },
-  addressLine1: { type: String, required: true },
-  addressLine2: { type: String }
+  addresses: [Address.schema] // Array of address documents
 });
 
 const User = mongoose.model('User', userSchema);

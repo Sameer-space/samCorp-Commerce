@@ -27,7 +27,7 @@ function verifyUserToken(userToken, res) {
 const UserController = {
   async register(req, res) {
     try {
-      const { username, password, name, email, phone, addressLine1, addressLine2 } = req.body;
+      const { username, password, name, email, phone, address } = req.body;
 
       // Check if the username is already taken
       const existingUser = await User.findOne({ username });
@@ -51,12 +51,25 @@ const UserController = {
         name,
         email,
         phone,
-        addressLine1,
-        addressLine2,
       });
+
+      // If address is provided, add it to the user's addresses and mark it as default
+      if (address) {
+        const newAddress = {
+          streetAddress: address.streetAddress,
+          city: address.city,
+          state: address.state,
+          postalCode: address.postalCode,
+          country: address.country,
+          phoneNumber: address.phoneNumber,
+          isDefault: true
+        };
+        newUser.addresses.push(newAddress);
+      }
+
       await newUser.save();
 
-      res.json({ message: 'Registration successful' });
+      res.status(201).json({ message: 'Registration successful' });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Internal server error' });
@@ -141,10 +154,20 @@ const UserController = {
           username: user.username,
           name: user.name,
           email: user.email,
-          addressLine1: user.addressLine1,
-          addressLine2: user.addressLine2,
-          phone: user.phone
-      }; 
+          phone: user.phone,
+          address: user.addresses ? user.addresses.map(address => ({
+            id: address._id,
+            streetAddress: address.streetAddress,
+            city: address.city,
+            state: address.state,
+            postalCode: address.postalCode,
+            country: address.country,
+            phoneNumber: address.phoneNumber,
+            isDefault: address.isDefault
+          })) : []
+        };
+        
+         
         return res.json({me : meData});
     } catch (error) {
         console.error(error);
