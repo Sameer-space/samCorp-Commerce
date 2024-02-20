@@ -120,33 +120,68 @@ const orderController = {
     }
   },
 
-  getAllOrders: async (req, res) => {
+   getAllOrders : async (req, res) => {
     try {
-      // Retrieve all orders
-      const orders = await Order.find();
-
+      const userToken = req.headers.authorization;
+      if (!userToken) {
+        return res.status(401).json({ error: 'Authorization token is missing' });
+      }    
+  
+      const decodedToken = verifyUserToken(userToken);
+      const user = await findUser(decodedToken);
+  
+      // Retrieve all orders for the user
+      const orders = await Order.find({ user: user._id });
+  
       res.status(200).json({ orders });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal server error' });
+      if (error.message === 'Invalid authorization header format' || 
+          error.message === 'Invalid token' || 
+          error.message === 'Token expired') {
+        res.status(401).json({ error: error.message });
+      } else if (error.message === 'Unauthorized access' || 
+                 error.message === 'User not found') {
+        res.status(403).json({ error: error.message });
+      } else {
+        console.error('Internal server error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+      }
     }
   },
 
-  getOrderById: async (req, res) => {
+   getOrderById : async (req, res) => {
     try {
+      const userToken = req.headers.authorization;
+      if (!userToken) {
+        return res.status(401).json({ error: 'Authorization token is missing' });
+      }    
+  
+      const decodedToken = verifyUserToken(userToken);
+      const user = await findUser(decodedToken);
+  
+      // Retrieve order ID from request parameters
       const orderId = req.params.orderId;
-
-      // Find order by ID
-      const order = await Order.findById(orderId);
-
+  
+      // Find the order associated with the user's ID and the provided order ID
+      const order = await Order.findOne({ _id: orderId, user: user._id });
+  
       if (!order) {
         return res.status(404).json({ error: 'Order not found' });
       }
-
+  
       res.status(200).json({ order });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal server error' });
+      if (error.message === 'Invalid authorization header format' || 
+          error.message === 'Invalid token' || 
+          error.message === 'Token expired') {
+        res.status(401).json({ error: error.message });
+      } else if (error.message === 'Unauthorized access' || 
+                 error.message === 'User not found') {
+        res.status(403).json({ error: error.message });
+      } else {
+        console.error('Internal server error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+      }
     }
   },
 
