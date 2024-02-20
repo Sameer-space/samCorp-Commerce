@@ -27,7 +27,7 @@ const orderSchema = new mongoose.Schema({
         ref: 'User'
     },
     items: [orderItemSchema],
-    totalPrice: {
+    grandTotal: {
         type: Number,
         required: true
     },
