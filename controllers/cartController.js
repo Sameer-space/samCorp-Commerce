@@ -1,38 +1,9 @@
 const Cart = require('../models/cartModel');
 const Product = require('../models/productModel');
 const User  = require("../models/userModel");
-const jwt = require('jsonwebtoken');
 
+const {verifyUserToken,findUser} = require("../middlewares/userAuthMiddleware")
 
-function verifyUserToken(userToken,res){
-    
-    // Extract the token from the authorization header
-    const tokenParts = userToken.split(' ');
-    if (tokenParts.length !== 2 || tokenParts[0] !== 'Bearer') {
-      return res.status(401).json({ error: 'Invalid authorization header format' });
-    }
-    const token = tokenParts[1];
-  
-    // Verify the token
-    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-    if (!decodedToken) {
-      return res.status(403).json({ error: 'Unauthorized access' });
-    }
-    return decodedToken;
-  
-};
-
-async function findUser(decodedToken,res) {
-    try {
-      const user = await User.findById(decodedToken.userId);  
-      if (!user) {
-        return res.status(404).json({ error: 'User not found' });
-    }
-      return user;
-    } catch (error) {
-      throw error;
-    }
-};
   
 
 const cartController = {
@@ -113,8 +84,17 @@ const cartController = {
       // Return success response with formatted cart
       res.status(200).json({ message: 'Product added to cart successfully', cart: formattedCart });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal server error' });
+      if (error.message === 'Invalid authorization header format' || 
+          error.message === 'Invalid token' || 
+          error.message === 'Token expired') {
+        res.status(401).json({ error: error.message });
+      } else if (error.message === 'Unauthorized access' || 
+                 error.message === 'User not found') {
+        res.status(403).json({ error: error.message });
+      } else {
+        console.error('Internal server error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+      }
     }
   },
   
@@ -167,8 +147,17 @@ const cartController = {
 
       res.json({ cart: formattedCart });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal server error' });
+      if (error.message === 'Invalid authorization header format' || 
+          error.message === 'Invalid token' || 
+          error.message === 'Token expired') {
+        res.status(401).json({ error: error.message });
+      } else if (error.message === 'Unauthorized access' || 
+                 error.message === 'User not found') {
+        res.status(403).json({ error: error.message });
+      } else {
+        console.error('Internal server error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+      }
     }
   },
 
@@ -239,8 +228,17 @@ const cartController = {
       // Return updated cart
       res.json({ message: 'Cart item quantity updated successfully', cart: formattedCart });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal server error' });
+      if (error.message === 'Invalid authorization header format' || 
+          error.message === 'Invalid token' || 
+          error.message === 'Token expired') {
+        res.status(401).json({ error: error.message });
+      } else if (error.message === 'Unauthorized access' || 
+                 error.message === 'User not found') {
+        res.status(403).json({ error: error.message });
+      } else {
+        console.error('Internal server error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+      }
     }
   },
   
@@ -284,8 +282,17 @@ const cartController = {
 
       res.json({ cart: formattedCart });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal server error' });
+      if (error.message === 'Invalid authorization header format' || 
+          error.message === 'Invalid token' || 
+          error.message === 'Token expired') {
+        res.status(401).json({ error: error.message });
+      } else if (error.message === 'Unauthorized access' || 
+                 error.message === 'User not found') {
+        res.status(403).json({ error: error.message });
+      } else {
+        console.error('Internal server error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+      }
     }
   },
 
@@ -321,8 +328,17 @@ const cartController = {
 
         res.json({ message: 'Cart cleared successfully', cart: formattedCart });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal server error' });
+      if (error.message === 'Invalid authorization header format' || 
+          error.message === 'Invalid token' || 
+          error.message === 'Token expired') {
+        res.status(401).json({ error: error.message });
+      } else if (error.message === 'Unauthorized access' || 
+                 error.message === 'User not found') {
+        res.status(403).json({ error: error.message });
+      } else {
+        console.error('Internal server error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+      }
     }
   }
 

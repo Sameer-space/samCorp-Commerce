@@ -3,8 +3,6 @@ const Cart = require('../models/cartModel');
 const Address  = require("../models/addressModel");
 const {verifyUserToken,findUser} = require("../middlewares/userAuthMiddleware")
 
-
-
 const orderController = {
    createOrder : async (req, res) => {
     try {
@@ -108,8 +106,17 @@ const orderController = {
   
       res.status(201).json({ message: 'Order created successfully', order: orderResponse });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal server error' });
+      if (error.message === 'Invalid authorization header format' || 
+          error.message === 'Invalid token' || 
+          error.message === 'Token expired') {
+        res.status(401).json({ error: error.message });
+      } else if (error.message === 'Unauthorized access' || 
+                 error.message === 'User not found') {
+        res.status(403).json({ error: error.message });
+      } else {
+        console.error('Internal server error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+      }
     }
   },
 

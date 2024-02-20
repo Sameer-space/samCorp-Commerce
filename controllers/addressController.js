@@ -1,35 +1,7 @@
 const User = require('../models/userModel');
-const jwt = require('jsonwebtoken');
 
-function verifyUserToken(userToken,res){
-    
-    // Extract the token from the authorization header
-    const tokenParts = userToken.split(' ');
-    if (tokenParts.length !== 2 || tokenParts[0] !== 'Bearer') {
-      return res.status(401).json({ error: 'Invalid authorization header format' });
-    }
-    const token = tokenParts[1];
-  
-    // Verify the token
-    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-    if (!decodedToken) {
-      return res.status(403).json({ error: 'Unauthorized access' });
-    }
-    return decodedToken;
-  
-};
+const {verifyUserToken,findUser} = require("../middlewares/userAuthMiddleware")
 
-async function findUser(decodedToken,res) {
-    try {
-      const user = await User.findById(decodedToken.userId);  
-      if (!user) {
-        return res.status(404).json({ error: 'User not found' });
-    }
-      return user;
-    } catch (error) {
-      throw error;
-    }
-};
   
 
 const AddressController = {
@@ -89,8 +61,17 @@ const AddressController = {
   
       res.status(201).json({ message: 'Address created successfully', address: formattedAddress });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal server error' });
+      if (error.message === 'Invalid authorization header format' || 
+          error.message === 'Invalid token' || 
+          error.message === 'Token expired') {
+        res.status(401).json({ error: error.message });
+      } else if (error.message === 'Unauthorized access' || 
+                 error.message === 'User not found') {
+        res.status(403).json({ error: error.message });
+      } else {
+        console.error('Internal server error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+      }
     }
   },
   
@@ -128,8 +109,17 @@ const AddressController = {
   
       res.json({addresses: formattedAddresses});
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal server error' });
+      if (error.message === 'Invalid authorization header format' || 
+          error.message === 'Invalid token' || 
+          error.message === 'Token expired') {
+        res.status(401).json({ error: error.message });
+      } else if (error.message === 'Unauthorized access' || 
+                 error.message === 'User not found') {
+        res.status(403).json({ error: error.message });
+      } else {
+        console.error('Internal server error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+      }
     }
   },
   
@@ -174,8 +164,17 @@ const AddressController = {
   
       res.json({address:formattedAddress});
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal server error' });
+      if (error.message === 'Invalid authorization header format' || 
+          error.message === 'Invalid token' || 
+          error.message === 'Token expired') {
+        res.status(401).json({ error: error.message });
+      } else if (error.message === 'Unauthorized access' || 
+                 error.message === 'User not found') {
+        res.status(403).json({ error: error.message });
+      } else {
+        console.error('Internal server error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+      }
     }
   },
   
@@ -244,8 +243,17 @@ const AddressController = {
 
         res.json({ message: 'Address updated successfully', address: formattedAddress });
     } catch (error) {
-        console.error(error);
+      if (error.message === 'Invalid authorization header format' || 
+          error.message === 'Invalid token' || 
+          error.message === 'Token expired') {
+        res.status(401).json({ error: error.message });
+      } else if (error.message === 'Unauthorized access' || 
+                 error.message === 'User not found') {
+        res.status(403).json({ error: error.message });
+      } else {
+        console.error('Internal server error:', error);
         res.status(500).json({ error: 'Internal server error' });
+      }
     }
 }
 ,
@@ -284,8 +292,17 @@ const AddressController = {
 
       res.status(204).send();
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal server error' });
+      if (error.message === 'Invalid authorization header format' || 
+          error.message === 'Invalid token' || 
+          error.message === 'Token expired') {
+        res.status(401).json({ error: error.message });
+      } else if (error.message === 'Unauthorized access' || 
+                 error.message === 'User not found') {
+        res.status(403).json({ error: error.message });
+      } else {
+        console.error('Internal server error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+      }
     }
   }
 };

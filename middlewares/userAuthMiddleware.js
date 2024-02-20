@@ -1,28 +1,33 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
 
-const verifyUserToken = (userToken, res) => {
-  // Extract the token from the authorization header
+const verifyUserToken = (userToken) => {
   try {
-  const tokenParts = userToken.split(' ');
-  if (tokenParts.length !== 2 || tokenParts[0] !== 'Bearer') {
-    return res.status(401).json({ error: 'Invalid authorization header format' });
-  }
-  const token = tokenParts[1];
+    const tokenParts = userToken.split(' ');
+    if (tokenParts.length !== 2 || tokenParts[0] !== 'Bearer') {
+      throw new Error('Invalid authorization header format');
+    }
+    const token = tokenParts[1];
 
-  // Verify the token
+    // Verify the token
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
     return decodedToken;
   } catch (error) {
-    return res.status(403).json({ error: 'Unauthorized access' });    
+    if (error.name === 'JsonWebTokenError') {
+      throw new Error('Invalid token');
+    }
+    if (error.name === 'TokenExpiredError') {
+      throw new Error('Token expired');
+    }
+    throw new Error('Unauthorized access');
   }
 };
 
-const findUser = async (decodedToken, res) => {
+const findUser = async (decodedToken) => {
   try {
     const user = await User.findById(decodedToken.userId);
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      throw new Error('User not found');
     }
     return user;
   } catch (error) {
