@@ -18,7 +18,9 @@ const adminRoutes = require('./routes/adminRoutes'); // Import admin routes
 const categoryRoutes = require('./routes/categoryRoutes');
 const productRoutes = require('./routes/productRoutes');
 const cartRoutes = require('./routes/cartRoutes');
-const  orderRoutes = require('./routes/orderRoutes');
+const orderRoutes = require('./routes/orderRoutes');
+const discountRoutes = require('./routes/discountRoutes');
+const deliveryMethodRoutes = require('./routes/deliveryMethodRoutes');
 
 app.use('/users', userRoutes);
 app.use('/admin', adminRoutes); // Set up admin routes
@@ -26,6 +28,8 @@ app.use('/categories', categoryRoutes);
 app.use('/products', productRoutes);
 app.use('/cart', cartRoutes);
 app.use('/order', orderRoutes);
+app.use('/discounts', discountRoutes);
+app.use('/delivery', deliveryMethodRoutes);
 
 const PORT = process.env.PORT || 3000;
 const logWithLink = (port) => {

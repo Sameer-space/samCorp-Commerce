@@ -31,6 +31,14 @@ const orderSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    deliveryMethod: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'DeliveryMethod',
+        required: true
+    },
+    discount: {
+        type: String
+    },
     shippingAddress: {
         streetAddress: { type: String, required: true },
         city: { type: String, required: true },
