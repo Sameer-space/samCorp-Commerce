@@ -3,23 +3,8 @@ const User = require('../models/userModel');
 
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const verifyAdminToken = require('../middlewares/adminAuthMiddleware');
 
-
-function verifyAdminToken(adminToken,res){
-  // Extract the token from the authorization header
-  const tokenParts = adminToken.split(' ');
-  if (tokenParts.length !== 2 || tokenParts[0] !== 'Bearer') {
-    return res.status(401).json({ error: 'Invalid authorization header format' });
-  }
-  const token = tokenParts[1];
-
-  // Verify the token
-  const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-  if (!decodedToken || decodedToken.role !== 'admin') {
-    return res.status(403).json({ error: 'Unauthorized access' });
-  }
-
-}
 
 const AdminController = {
     async register(req, res) {
@@ -101,7 +86,7 @@ const AdminController = {
         if (!adminToken) {
           return res.status(401).json({ error: 'Authorization token is missing' });
         }
-        verifyAdminToken(adminToken,res);
+        verifyAdminToken(adminToken);
 
         // Fetch all users from the database
         const users = await User.find();
@@ -120,14 +105,14 @@ const AdminController = {
           
       } catch (error) {
         console.error(error);
-        if (error.name === 'JsonWebTokenError') {
+        if (error.message === 'Invalid token') {
           return res.status(401).json({ error: 'Invalid token' });
         }
-        if (error.name === 'TokenExpiredError') {
+        if (error.message === 'Token expired') {
           return res.status(401).json({ error: 'Token expired' });
         }
         return res.status(500).json({ error: 'Internal server error' });
-      }
+      }      
     },
     // Fetch a single user by ID
     async getAUser(req, res) {
@@ -165,10 +150,10 @@ const AdminController = {
       res.json({user : userData});
     } catch (error) {
       console.error(error);
-      if (error.name === 'JsonWebTokenError') {
+      if (error.message === 'Invalid token') {
         return res.status(401).json({ error: 'Invalid token' });
       }
-      if (error.name === 'TokenExpiredError') {
+      if (error.message === 'Token expired') {
         return res.status(401).json({ error: 'Token expired' });
       }
       if (error.name === 'CastError') {

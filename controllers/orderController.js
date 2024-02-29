@@ -112,20 +112,17 @@ const orderController = {
 
                 // Check if the discount exists and is valid
                 if (!discount) {
-                    return res.status(404).json({
-                        error: 'Discount not found'
-                    });
-                } else if (((!startDate || moment().isAfter(startDate)) && (!endDate || moment().isBefore(endDate)))) {
-                    // Check if the discount is within its validity period
-                    return res.status(400).json({
-                        error: 'Discount is not valid'
-                    });
-                } else if (discount.usability <= 0) {
-                    // Check if the discount has been exhausted
-                    return res.status(400).json({
-                        error: 'Discount has been fully used'
-                    });
+                    return res.status(404).json({ error: 'Discount not found' });
                 }
+                
+                if ((startDate && moment().isBefore(startDate)) || (endDate && moment().isAfter(endDate))) {
+                    return res.status(400).json({ error: 'Discount is not valid' });
+                }
+                
+                if (discount.usability <= 0) {
+                    return res.status(400).json({ error: 'Discount has been fully used' });
+                }
+                
 
                 // Apply the discount based on its type
                 if (discount.type === 'percentage') {
@@ -151,7 +148,7 @@ const orderController = {
                 items: cart.items,
                 grandTotal,
                 deliveryMethod: deliveryMethodId,
-                discount: discount ? discount.code : null, // Store the discount code
+                discount: discount ? { code: discount.code, discountedAmount: discountAmount } : null, // Store the discount code and amount
                 shippingAddress: shippingAddr,
                 billingAddress: billingAddr,
                 status: 'pending'
@@ -302,25 +299,7 @@ const orderController = {
             }
 
             const deliveryMethod = await DeliveryMethod.findById(order.deliveryMethod);
-            const discount = await Discount.findOne({
-                code: order.discount
-            });
-            //       let discountAmount = 0;
 
-            //       // Calculate discount amount based on discount type
-            //       if (discount.type === 'percentage') {
-            //     // Calculate discount amount based on discount percentage
-            //     discountAmount = (order.grandTotal * discount.value) / 100;
-            //       } else if (discount.type === 'fixed') {
-            //     // Fixed discount amount
-            //     discountAmount = discount.value;
-            // }
-
-            // // Ensure discount amount does not exceed the grand total
-            // discountAmount = Math.min(discountAmount, order.grandTotal);
-
-            // // Calculate discounted amount
-            // const discountedAmount = order.grandTotal - discountAmount;
             const populatedItems = await Promise.all(order.items.map(async (item) => {
                 // Find product details
                 const product = await Product.findById(item.productId);
@@ -365,10 +344,8 @@ const orderController = {
                     shippingPrice: deliveryMethod.price
                 },
                 discount: {
-                    code: order.discount,
-                    type: discount.type,
-                    value: discount.value,
-                    amount: discountAmount || 0
+                    discountCode: order.discount.code,
+                    discountAmount: order.discount.discountedAmount
                 },
                 grandTotal: order.grandTotal,
                 shippingAddress: order.shippingAddress,

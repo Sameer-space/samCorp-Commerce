@@ -16,6 +16,7 @@ async function connect() {
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } catch (error) {
     console.error('Error connecting to MongoDB Atlas:', error);
+    process.exit(1);
   }
 
   // Handling MongoDB connection errors

@@ -27,7 +27,7 @@ app.use('/admin', adminRoutes); // Set up admin routes
 app.use('/categories', categoryRoutes);
 app.use('/products', productRoutes);
 app.use('/cart', cartRoutes);
-app.use('/order', orderRoutes);
+app.use('/orders', orderRoutes);
 app.use('/discounts', discountRoutes);
 app.use('/delivery', deliveryMethodRoutes);
 

@@ -37,7 +37,9 @@ const orderSchema = new mongoose.Schema({
         required: true
     },
     discount: {
-        type: String
+        code : {type: String},
+        discountedAmount : {type: Number}
+
     },
     shippingAddress: {
         streetAddress: { type: String, required: true },
