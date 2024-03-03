@@ -21,6 +21,7 @@ const cartRoutes = require('./routes/cartRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const discountRoutes = require('./routes/discountRoutes');
 const deliveryMethodRoutes = require('./routes/deliveryMethodRoutes');
+const paymentMethodRoutes = require('./routes/paymentMethodRoutes');
 
 app.use('/users', userRoutes);
 app.use('/admin', adminRoutes); // Set up admin routes
@@ -30,6 +31,7 @@ app.use('/cart', cartRoutes);
 app.use('/orders', orderRoutes);
 app.use('/discounts', discountRoutes);
 app.use('/delivery', deliveryMethodRoutes);
+app.use('/payment', paymentMethodRoutes);
 
 const PORT = process.env.PORT || 3000;
 const logWithLink = (port) => {

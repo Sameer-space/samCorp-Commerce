@@ -142,7 +142,7 @@ const orderController = {
 
             // Subtract the discount amount from the grand total
             grandTotal -= discountAmount;
-
+            paymentMethod =null;
             const newOrder = new Order({
                 user: userId,
                 items: cart.items,
@@ -151,7 +151,8 @@ const orderController = {
                 discount: discount ? { code: discount.code, discountedAmount: discountAmount } : null, // Store the discount code and amount
                 shippingAddress: shippingAddr,
                 billingAddress: billingAddr,
-                status: 'pending'
+                status: 'pending',
+                paymentMethod
             });
             await newOrder.save();
 
@@ -180,6 +181,7 @@ const orderController = {
                 shippingAddress: newOrder.shippingAddress,
                 billingAddress: newOrder.billingAddress,
                 status: newOrder.status,
+                paymentMethod : newOrder.paymentMethod || null,
                 createdAt: newOrder.createdAt,
                 updatedAt: newOrder.updatedAt
             };
