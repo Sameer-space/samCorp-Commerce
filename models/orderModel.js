@@ -63,9 +63,10 @@ const orderSchema = new mongoose.Schema({
         default: 'pending'
     },
     paymentMethod: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'PaymentMethod'
-    }
+        id: { type: mongoose.Schema.Types.ObjectId, ref: 'PaymentMethod' },
+        code: { type: String },
+        status: { type: String, enum: ['paid', 'unpaid'], default: 'unpaid' }
+    },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Order', orderSchema);

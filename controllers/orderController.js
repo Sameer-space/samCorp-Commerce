@@ -142,7 +142,11 @@ const orderController = {
 
             // Subtract the discount amount from the grand total
             grandTotal -= discountAmount;
-            paymentMethod =null;
+            paymentMethod ={
+                id : null,
+                code : null,
+                status: "unpaid"
+            };
             const newOrder = new Order({
                 user: userId,
                 items: cart.items,
@@ -225,10 +229,12 @@ const orderController = {
 
             // Retrieve all orders for the user
             const orders = await Order.find({
-                user: user._id
+                user: user._id,
+                'paymentMethod.status': 'paid'
             }).sort({
                 createdAt: -1
             });
+            
 
             const formattedOrders = orders.map(order => ({
                 id: order._id,
@@ -241,6 +247,7 @@ const orderController = {
                 deliveryMethodId: order.deliveryMethod,
                 discountCode: order.discount,
                 grandTotal: order.grandTotal,
+                paymentMethod : order.paymentMethod,
                 shippingAddress: order.shippingAddress,
                 billingAddress: order.billingAddress,
                 status: order.status,
@@ -350,6 +357,7 @@ const orderController = {
                     discountAmount: order.discount.discountedAmount
                 },
                 grandTotal: order.grandTotal,
+                paymentMethod : order.paymentMethod,
                 shippingAddress: order.shippingAddress,
                 billingAddress: order.billingAddress,
                 status: order.status,
