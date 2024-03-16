@@ -9,6 +9,16 @@
   },
   "author": "Sameer Sheikh",
   "license": "ISC",
+  "keywords": [
+    "headless",
+    "commerce",
+    "ecommerce",
+    "backend"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Sameer-space/samCorp-Commerce.git"
+  },
   "dependencies": {
     "axios": "^1.6.7",
     "bcrypt": "^5.1.1",
@@ -21,5 +31,9 @@
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0"
+  },
+  "devDependencies": {
+    "mocha": "^9.1.3",
+    "chai": "^4.3.4"
   }
 }

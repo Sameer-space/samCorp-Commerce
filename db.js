@@ -13,7 +13,7 @@ async function connect() {
 
     // Optionally, ping the deployment to verify the connection
     await mongoose.connection.db.admin().command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    console.log("Pinged your deployment. You are successfully connected to MongoDB!");
   } catch (error) {
     console.error('Error connecting to MongoDB Atlas:', error);
     process.exit(1);
