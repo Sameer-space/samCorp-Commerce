@@ -1,16 +1,22 @@
 const express = require('express');
 const helmet = require('helmet');
+const cors = require('cors');
 const app = express();
 require('dotenv').config();
 
 // Set up middleware (body parser, helmet, etc.)
 app.use(express.json());
 app.use(helmet()); 
+app.use(cors());
 
 // Connect to MongoDB
 const mongoose = require('mongoose');
 const db = require('./db'); 
 db.connect();
+
+// Set Up Swagger Docs
+const docs =  require('./docs');
+docs.setupSwagger(app);
 
 // Set up routes
 const userRoutes = require('./routes/userRoutes');
