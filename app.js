@@ -4,6 +4,7 @@ const cors = require('cors');
 const app = express();
 require('dotenv').config();
 
+
 // Set up middleware (body parser, helmet, etc.)
 app.use(express.json());
 app.use(helmet()); 
@@ -28,6 +29,7 @@ const orderRoutes = require('./routes/orderRoutes');
 const discountRoutes = require('./routes/discountRoutes');
 const deliveryMethodRoutes = require('./routes/deliveryMethodRoutes');
 const paymentMethodRoutes = require('./routes/paymentMethodRoutes');
+const searchRoutes = require('./routes/searchRoutes');
 
 app.use('/users', userRoutes);
 app.use('/admin', adminRoutes); // Set up admin routes
@@ -38,6 +40,7 @@ app.use('/orders', orderRoutes);
 app.use('/discounts', discountRoutes);
 app.use('/delivery', deliveryMethodRoutes);
 app.use('/payment', paymentMethodRoutes);
+app.use('/search', searchRoutes);
 
 const PORT = process.env.PORT || 3000;
 const logWithLink = (port) => {
